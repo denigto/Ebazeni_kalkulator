@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proračun za Bazen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #d7f0ff; /* Svijetlo plava */
+            color: #005b96; /* Tamnoplava */
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #005b96;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        select, input[type="number"], input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #005b96;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        input[type="submit"] {
+            background-color: #005b96;
+            color: white;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #003f66;
+        }
+
+        .result {
+            background-color: #e0f7ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .financial-report {
+            background-color: #005b96;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            position: relative;
+            text-align: center;
+        }
+
+        .financial-report h2 {
+            margin-bottom: 15px;
+        }
+
+        .financial-report p {
+            margin: 5px 0;
+        }
+
+        /* Kapljica vode za rezultat */
+        .water-drop {
+            width: 150px;
+            height: 150px;
+            background-color: #b3e5fc;
+            border-radius: 50% 50% 50% 50%;
+            transform: rotate(45deg);
+            position: absolute;
+            bottom: -75px;
+            left: calc(50% - 75px);
+            opacity: 0.7;
+            z-index: -1;
+        }
+
+        /* Kapljica vode za financijski izvještaj */
+        .water-drop-financial {
+            width: 200px;
+            height: 200px;
+            background-color: #80d8ff;
+            border-radius: 50% 50% 50% 50%;
+            transform: rotate(45deg);
+            position: absolute;
+            bottom: -100px;
+            left: calc(50% - 100px);
+            opacity: 0.6;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Proračun za Bazen</h1>
+    <div class="container">
+        <form id="bazenForm">
+            <label for="tipBazena">Odaberite tip bazena:</label>
+            <select id="tipBazena" name="tipBazena">
+                <option value="1">Bazen sa folijom</option>
+                <option value="2">Bazen sa keramikom</option>
+                <option value="3">Bazen ofarban bazenskom bojom</option>
+            </select>
+
+            <label for="duzinaBazena">Unesite dužinu bazena (u metrima):</label>
+            <input type="number" id="duzinaBazena" name="duzinaBazena" min="1" step="0.1">
+
+            <label for="sirinaBazena">Unesite širinu bazena (u metrima):</label>
+            <input type="number" id="sirinaBazena" name="sirinaBazena" min="1" step="0.1">
+
+            <label for="stepenice">Odaberite stepenice:</label>
+            <select id="stepenice" name="stepenice">
+                <option value="1">Betonske stepenice</option>
+                <option value="2">Inox stepenice sa 4 gazišta</option>
+            </select>
+
+            <input type="submit" value="Izračunaj">
+        </form>
+
+        <div id="result" class="result" style="display: none;">
+            <h2>Rezultat proračuna</h2>
+            <p id="povrsina"></p>
+            <p id="zapremina"></p>
+            <p id="filter"></p>
+            <p id="folija"></p>
+            <p id="rolaFolije"></p>
+            <p id="aluminijskeLajsne"></p>
+            <p id="inoxTiple"></p>
+            <p id="filc"></p>
+            <div class="water-drop"></div>
+        </div>
+
+        <div id="financialReport" class="financial-report" style="display: none;">
+            <h2>Financijski izvještaj</h2>
+            <p id="folijaCost"></p>
+            <p id="filterCost"></p>
+            <p id="pipeCost"></p>
+            <p id="shellEquipmentCost"></p>
+            <p id="totalCost"></p>
+            <div class="water-drop-financial"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('bazenForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Dohvati vrijednosti iz formi
+            const tipBazena = document.getElementById('tipBazena').value;
+            const duzina = parseFloat(document.getElementById('duzinaBazena').value);
+            const sirina = parseFloat(document.getElementById('sirinaBazena').value);
+            const stepenice = document.getElementById('stepenice').value;
+
+            const dubina = 1.5; // Fiksna dubina
+            let zapremina = duzina * sirina * dubina;
+
+            if (stepenice === "1") {
+                zapremina -= 1.5; // Oduzmi zapreminu betonskih stepenica
+            }
+
+            // Površine
+            const povrsinaDna = duzina * sirina;
+            const povrsinaZidova = 2 * (duzina * dubina) + 2 * (sirina * dubina);
+            const ukupnaPovrsina = povrsinaDna + povrsinaZidova;
+
+            // Izračunaj dijagonalu bazena (Pitagorina teorema)
+            const dijagonala = Math.sqrt(Math.pow(duzina, 2) + Math.pow(sirina, 2));
+
+            // Cijene - rastuće i opadajuće
+            let cijenaFilterPumpa, cijenaCijeviFitinzi, cijenaOpremaSkoljka;
+            if (zapremina <= 35) {
+                cijenaFilterPumpa = 2000;
+            } else if (zapremina <= 50) {
+                cijenaFilterPumpa = 2400;
+            } else if (zapremina <= 80) {
+                cijenaFilterPumpa = 3000;
+            }
+
+            // Linearno raste s dijagonalom za cijevovode i fitinge (minimalno 1100 KM, maksimalno 2000 KM)
+            cijenaCijeviFitinzi = 1100 + (dijagonala - Math.sqrt(1)) / Math.sqrt(80) * (2000 - 1100);
+            cijenaCijeviFitinzi = Math.min(Math.max(cijenaCijeviFitinzi, 1100), 2000); // Ograničenje između 1100 i 2000
+
+            // Linearno opada s dijagonalom za opremu školjke (minimalno 1200 KM, maksimalno 3100 KM)
+            cijenaOpremaSkoljka = 3100 - (dijagonala - Math.sqrt(1)) / Math.sqrt(80) * (3100 - 1200);
+            cijenaOpremaSkoljka = Math.min(Math.max(cijenaOpremaSkoljka, 1200), 3100); // Ograničenje između 1200 i 3100
+
+            // Proračun folije ako je odabrano tip bazena sa folijom
+            let cijenaFolija = 0, ukupnaFolija = 0;
+            if (tipBazena === "1") {
+                const obimBazena = 2 * (duzina + sirina);
+                const potrebnaFolijaZidovi = obimBazena * 1.65;
+                const potrebnaFolijaDno = povrsinaDna;
+                ukupnaFolija = potrebnaFolijaZidovi + potrebnaFolijaDno;
+                cijenaFolija = ukupnaFolija * 118;
+
+                // Dodaj fiksni iznos za betonske stepenice
+                if (stepenice === "1") {
+                    cijenaFolija += 1400;
+                }
+
+                // Izračun rola folije
+                const povrsinaRole = 25 * 1.65; // Površina jedne role
+                const brojRola = Math.ceil(ukupnaFolija / povrsinaRole); // Zaokruženo na cijele role
+
+                // Izračun aluminijskih lajsni (obim bazena)
+                const aluminijskeLajsne = obimBazena; // Obrub bazena
+
+                // Izračun inox tipli (3 tiple po metru lajsni)
+                const inoxTiple = aluminijskeLajsne * 3;
+
+                // Antibakterijski filc = unutrašnja površina bazena (zidovi + pod)
+                const filc = ukupnaPovrsina;
+
+                // Prikaz dodatnih rezultata
+                document.getElementById('rolaFolije').innerHTML = `Potrebno je približno ${brojRola} rola folije.`;
+                document.getElementById('aluminijskeLajsne').innerHTML = `Ukupno aluminijskih lajsni: ${aluminijskeLajsne.toFixed(2)} metara.`;
+                document.getElementById('inoxTiple').innerHTML = `Ukupno inox tipli: ${inoxTiple.toFixed(0)} komada.`;
+                document.getElementById('filc').innerHTML = `Potrebno antibakterijskog filca: ${filc.toFixed(2)} m².`;
+            }
+
+            const ukupnaCijena = cijenaFolija + cijenaFilterPumpa + cijenaCijeviFitinzi + cijenaOpremaSkoljka;
+
+            // Prikaz rezultata
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('povrsina').innerHTML = `Ukupna površina bazena: ${ukupnaPovrsina.toFixed(2)} m²`;
+            document.getElementById('zapremina').innerHTML = `Zapremina bazena: ${zapremina.toFixed(2)} m³`;
+            document.getElementById('filter').innerHTML = `Kapacitet filtera i pumpe: ${(zapremina / 4).toFixed(2)} m³/h`;
+
+            // Prikaz financijskog izvještaja
+            document.getElementById('financialReport').style.display = 'block';
+            if (tipBazena === "1") {
+                document.getElementById('folijaCost').innerHTML = `Cijena folije: ${cijenaFolija.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KM`;
+            }
+            document.getElementById('filterCost').innerHTML = `Cijena filtera i pumpe: ${cijenaFilterPumpa.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KM`;
+            document.getElementById('pipeCost').innerHTML = `Cijena cijevovoda i fitinga: ${cijenaCijeviFitinzi.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KM`;
+            document.getElementById('shellEquipmentCost').innerHTML = `Cijena opreme za školjku bazena: ${cijenaOpremaSkoljka.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KM`;
+            document.getElementById('totalCost').innerHTML = `UKUPAN IZNOS: ${ukupnaCijena.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KM`;
+        });
+    </script>
+</body>
+</html>
